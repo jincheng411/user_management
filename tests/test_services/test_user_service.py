@@ -1,3 +1,4 @@
+from binascii import Error
 from builtins import range
 import pytest
 from sqlalchemy import select
@@ -137,7 +138,7 @@ async def test_account_lock_after_failed_logins(db_session, verified_user):
     max_login_attempts = get_settings().max_login_attempts
     for _ in range(max_login_attempts):
         await UserService.login_user(db_session, verified_user.email, "wrongpassword")
-    
+
     is_locked = await UserService.is_account_locked(db_session, verified_user.email)
     assert is_locked, "The account should be locked after the maximum number of failed login attempts."
 
@@ -161,3 +162,79 @@ async def test_unlock_user_account(db_session, locked_user):
     assert unlocked, "The account should be unlocked"
     refreshed_user = await UserService.get_by_id(db_session, locked_user.id)
     assert not refreshed_user.is_locked, "The user should no longer be locked"
+
+# Test retrieving a paginated list of users
+async def test_list_users_pagination(db_session, users):
+    result = await UserService.list_users(db_session, skip=0, limit=5)
+    assert len(result) == 5
+    assert all(isinstance(user, User) for user in result)
+
+# Test searching by nickname
+async def test_list_users_search_by_nickname(db_session, users):
+    result = await UserService.list_users(db_session, search="john")
+    assert len(result) > 0
+    assert all("john" in user.nickname.lower() for user in result)
+
+# Test searching by email
+async def test_list_users_search_by_email(db_session, users):
+    result = await UserService.list_users(db_session, search="example.com")
+    assert len(result) > 0
+    assert all("example.com" in user.email for user in result)
+
+# Test filtering by role
+async def test_list_users_filter_by_role(db_session, users):
+    result = await UserService.list_users(db_session, role=UserRole.ADMIN)
+    assert len(result) > 0
+    assert all(user.role == UserRole.ADMIN for user in result)
+
+# Test filtering by status
+async def test_list_users_filter_by_status(db_session, users):
+    result = await UserService.list_users(db_session, is_locked=True)
+    assert len(result) > 0
+    assert all(user.is_locked == True for user in result)
+
+# Test filtering by creation date range
+async def test_list_users_filter_by_created_date_range(db_session, users):
+    result = await UserService.list_users(
+        db_session, created_from="2023-01-01", created_to="2023-12-31"
+    )
+    assert len(result) > 0
+    for user in result:
+        assert "2023-01-01" <= user.created_at.strftime("%Y-%m-%d") <= "2023-12-31"
+
+# Test sorting by created_at in descending order
+async def test_list_users_sort_by_created_at_desc(db_session, users):
+    result = await UserService.list_users(db_session, sort_by="created_at", sort_order="desc")
+    created_dates = [user.created_at for user in result]
+    assert created_dates == sorted(created_dates, reverse=True)
+
+# Test sorting by created_at in ascending order
+async def test_list_users_sort_by_created_at_asc(db_session, users):
+    result = await UserService.list_users(db_session, sort_by="created_at", sort_order="asc")
+    created_dates = [user.created_at for user in result]
+    assert created_dates == sorted(created_dates)
+
+# Test invalid date format raises error
+async def test_list_users_invalid_date_format(db_session):
+    with pytest.raises(ValueError):
+        await UserService.list_users(db_session, created_from="invalid-date")
+
+# Test filtering with no matching results
+async def test_list_users_no_matching_results(db_session):
+    result = await UserService.list_users(db_session, search="nonexistent")
+    assert len(result) == 0
+
+# Test combination of search and role filter
+async def test_list_users_search_and_role_filter(db_session, users):
+    result = await UserService.list_users(db_session, search="john", role=UserRole.MANAGER)
+    assert len(result) > 0
+    assert all("john" in user.nickname.lower() and user.role == UserRole.MANAGER for user in result)
+
+# Test pagination skips results
+async def test_list_users_pagination_skips(db_session, users):
+    result_page_1 = await UserService.list_users(db_session, skip=0, limit=5)
+    result_page_2 = await UserService.list_users(db_session, skip=5, limit=5)
+    assert len(result_page_1) == 5
+    assert len(result_page_2) == 5
+    assert result_page_1 != result_page_2
+
