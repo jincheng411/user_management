@@ -242,20 +242,101 @@ def email_service():
 @pytest.fixture
 async def users(db_session: AsyncSession):
     """
-    Creates multiple test users in the database.
+    Fixture to create diverse test users to cover various test cases.
     """
     test_users = [
+        # Users with 'john' in the nickname for search tests
         User(
-            nickname=f"User{i}",
-            email=f"user{i}@example.com",
-            role=UserRole.AUTHENTICATED if i % 2 == 0 else UserRole.ADMIN,
-            email_verified=True if i % 3 != 0 else False,
+            nickname="john_doe",
+            email="john@example.com",
             hashed_password="securepassword",
-            created_at=datetime(2023, 1, i + 1) if i < 31 else datetime(2023, 2, 1),
-        )
-        for i in range(10)  # Create 10 test users
+            role=UserRole.MANAGER,
+            is_locked=False,
+            created_at=datetime(2023, 1, 1),
+        ),
+        User(
+            nickname="john_smith",
+            email="johnsmith@example.com",
+            hashed_password="securepassword",
+            role=UserRole.MANAGER,
+            is_locked=False,
+            created_at=datetime(2023, 1, 2),
+        ),
+        # Users with varying roles and statuses
+        User(
+            nickname="admin_user",
+            email="admin@example.com",
+            hashed_password="securepassword",
+            role=UserRole.ADMIN,
+            is_locked=False,
+            created_at=datetime(2023, 2, 1),
+        ),
+        User(
+            nickname="manager_user",
+            email="manager@example.com",
+            hashed_password="securepassword",
+            role=UserRole.ADMIN,
+            is_locked=False,
+            created_at=datetime(2023, 3, 1),
+        ),
+        User(
+            nickname="inactive_admin",
+            email="inactive_admin@example.com",
+            hashed_password="securepassword",
+            role=UserRole.ADMIN,
+            is_locked=False,
+            created_at=datetime(2023, 4, 1),
+        ),
+        # Additional users for pagination and sorting
+        User(
+            nickname="user1",
+            email="user1@example.com",
+            hashed_password="securepassword",
+            role=UserRole.ADMIN,
+            is_locked=False,
+            created_at=datetime(2023, 5, 1),
+        ),
+        User(
+            nickname="user2",
+            email="user2@example.com",
+            hashed_password="securepassword",
+            role=UserRole.ADMIN,
+            is_locked=False,
+            created_at=datetime(2023, 6, 1),
+        ),
+        User(
+            nickname="user3",
+            email="user3@example.com",
+            hashed_password="securepassword",
+            role=UserRole.ADMIN,
+            is_locked=False,
+            created_at=datetime(2023, 7, 1),
+        ),
+        User(
+            nickname="user4",
+            email="user4@example.com",
+            hashed_password="securepassword",
+            role=UserRole.AUTHENTICATED,
+            is_locked=True,
+            created_at=datetime(2023, 8, 1),
+        ),
+        User(
+            nickname="user5",
+            email="user5@example.com",
+            hashed_password="securepassword",
+            role=UserRole.AUTHENTICATED,
+            is_locked=True,
+            created_at=datetime(2023, 9, 1),
+        ),
+        User(
+            nickname="user6",
+            email="user6@example.com",
+            hashed_password="securepassword",
+            role=UserRole.AUTHENTICATED,
+            is_locked=True,
+            created_at=datetime(2023, 10, 1),
+        ),
     ]
-
     db_session.add_all(test_users)
     await db_session.commit()
     return test_users

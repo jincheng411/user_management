@@ -117,7 +117,7 @@ class UserService:
         limit: int = 10,
         search: Optional[str] = None,
         role: Optional[str] = None,
-        status: Optional[str] = None,
+        is_locked: Optional[str] = None,
         created_from: Optional[str] = None,
         created_to: Optional[str] = None,
         sort_by: Optional[str] = "created_at",
@@ -137,9 +137,9 @@ class UserService:
                 )
             )
         if role:
-            query = query.filter(User.role == role.upper())
-        if status:
-            query = query.filter(User.status == status.lower())
+            query = query.filter(User.role == role)
+        if is_locked:
+            query = query.filter(User.is_locked == is_locked)
         if created_from or created_to:
             date_filters = []
             if created_from:
