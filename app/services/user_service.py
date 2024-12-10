@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 import secrets
 from typing import Optional, Dict, List
 from pydantic import ValidationError
-from sqlalchemy import func, null, update, select
+from sqlalchemy import func, null, update, select, or_, and_, desc, asc
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.dependencies import get_email_service, get_settings
@@ -110,9 +110,54 @@ class UserService:
         return True
 
     @classmethod
-    async def list_users(cls, session: AsyncSession, skip: int = 0, limit: int = 10) -> List[User]:
-        query = select(User).offset(skip).limit(limit)
-        result = await cls._execute_query(session, query)
+    async def list_users(
+        cls,
+        session: AsyncSession,
+        skip: int = 0,
+        limit: int = 10,
+        search: Optional[str] = None,
+        role: Optional[str] = None,
+        status: Optional[str] = None,
+        created_from: Optional[str] = None,
+        created_to: Optional[str] = None,
+        sort_by: Optional[str] = "created_at",
+        sort_order: Optional[str] = "desc",
+    ) -> List[User]:
+        query = select(User)
+
+        # Apply filters
+        if search:
+            search_pattern = f"%{search}%"
+            query = query.filter(
+                or_(
+                    User.nickname.ilike(search_pattern),
+                    User.email.ilike(search_pattern),
+                    User.first_name.ilike(search_pattern),
+                    User.last_name.ilike(search_pattern),
+                )
+            )
+        if role:
+            query = query.filter(User.role == role.upper())
+        if status:
+            query = query.filter(User.status == status.lower())
+        if created_from or created_to:
+            date_filters = []
+            if created_from:
+                created_from_date = datetime.strptime(created_from, "%Y-%m-%d")
+                date_filters.append(User.created_at >= created_from_date)
+            if created_to:
+                created_to_date = datetime.strptime(created_to, "%Y-%m-%d")
+                date_filters.append(User.created_at <= created_to_date)
+            query = query.filter(and_(*date_filters))
+
+        # Apply sorting
+        sort_column = getattr(User, sort_by, User.created_at)  # Default to 'created_at'
+        sort_order_func = desc if sort_order.lower() == "desc" else asc
+        query = query.order_by(sort_order_func(sort_column))
+
+        # Apply pagination
+        query = query.offset(skip).limit(limit)
+        result = await session.execute(query)
         return result.scalars().all() if result else []
 
     @classmethod
@@ -197,3 +242,5 @@ class UserService:
             await session.commit()
             return True
         return False
+
+

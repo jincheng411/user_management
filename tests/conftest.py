@@ -15,7 +15,7 @@ Fixtures:
 
 # Standard library imports
 from builtins import Exception, range, str
-from datetime import timedelta
+from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, patch
 from uuid import uuid4
 
@@ -238,3 +238,24 @@ def email_service():
         mock_service.send_verification_email.return_value = None
         mock_service.send_user_email.return_value = None
         return mock_service
+
+@pytest.fixture
+async def users(db_session: AsyncSession):
+    """
+    Creates multiple test users in the database.
+    """
+    test_users = [
+        User(
+            nickname=f"User{i}",
+            email=f"user{i}@example.com",
+            role=UserRole.AUTHENTICATED if i % 2 == 0 else UserRole.ADMIN,
+            email_verified=True if i % 3 != 0 else False,
+            hashed_password="securepassword",
+            created_at=datetime(2023, 1, i + 1) if i < 31 else datetime(2023, 2, 1),
+        )
+        for i in range(10)  # Create 10 test users
+    ]
+
+    db_session.add_all(test_users)
+    await db_session.commit()
+    return test_users
