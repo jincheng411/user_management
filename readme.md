@@ -2,52 +2,65 @@
 
 # The User Management System Final Project: Your Epic Coding Adventure Awaits! 🎉✨🔥
 
-## Introduction: Buckle Up for the Ride of a Lifetime 🚀🎬
+### Docker image on docker hub: https://hub.docker.com/repository/docker/jincheng411/event-manager/general](https://hub.docker.com/repository/docker/jincheng411/user_managment/general
 
-Welcome to the User Management System project - an epic open-source adventure crafted by the legendary Professor Keith Williams for his rockstar students at NJIT! 🏫👨‍🏫⭐ This project is your gateway to coding glory, providing a bulletproof foundation for a user management system that will blow your mind! 🤯 You'll bridge the gap between the realms of seasoned software pros and aspiring student developers like yourselves. 
+### Issue 1: Docker compose start fail
+Docker failed when running: docker compose up --build, fixed that by update dockerfile that allow downgrade
 
-### [Instructor Video - Project Overview and Tips](https://youtu.be/gairLNAp6mA) 🎥
+[See the issue](https://github.com/jincheng411/user_management/issues/11)
 
-- [Introduction to the system features and overview of the project - please read](system_documentation.md) 📚
-- [Project Setup Instructions](setup.md) ⚒️
-- [Features to Select From](features.md) 🛠️
-- [About the Project](about.md)🔥🌟
 
-## Goals and Objectives: Unlock Your Coding Superpowers 🎯🏆🌟
+### Issue 2: Password is not meeting the standard
+When register user, password is not meeting the standard, must be at least 8 characters and include at least one upper and lower case letters. fix that by adding password validator in user schema
 
-Get ready to ascend to new heights with this legendary project:
+[See the issue](https://github.com/jincheng411/user_management/issues/9)
 
-1. **Practical Experience**: Dive headfirst into a real-world codebase, collaborate with your teammates, and contribute to an open-source project like a seasoned pro! 💻👩‍💻🔥
-2. **Quality Assurance**: Develop ninja-level skills in identifying and resolving bugs, ensuring your code quality and reliability are out of this world. 🐞🔍⚡
-3. **Test Coverage**: Write additional tests to cover edge cases, error scenarios, and important functionalities - leave no stone unturned and no bug left behind! ✅🧪🕵️‍♂️
-4. **Feature Implementation**: Implement a brand new, mind-blowing feature and make your epic mark on the project, following best practices for coding, testing, and documentation like a true artisan. ✨🚀🎆
-5. **Collaboration**: Foster teamwork and collaboration through code reviews, issue tracking, and adhering to contribution guidelines - teamwork makes the dream work, and together you'll conquer worlds! 🤝💪🌍
-6. **Industry Readiness**: Prepare for the software industry by working on a project that simulates real-world development scenarios - level up your skills to super hero status  and become an unstoppable coding force! 🔝🚀🏆⚡
+### Issue 3: Not able to update user's is_professional
+Not able to update is_professional field because of missing field in the user schema, add that field into user_update and user_response, solved the problem.
 
-## Submission and Grading: Your Chance to Shine 📝✏️📈
+[See the issue](https://github.com/jincheng411/user_management/issues/7)
 
-1. **Reflection Document**: Submit a 1-2 page Word document reflecting on your learnings throughout the course and your experience working on this epic project. Include links to the closed issues for the **5 QA issues, 10 NEW tests, and 1 Feature** you'll be graded on. Make sure your project successfully deploys to DockerHub and include a link to your Docker repository in the document - let your work speak for itself! 📄🔗💥
+### Issue 4: Admin user role changed to authenticated after email verified  
+After registering the first user which is an admin role, the user receives a verification email, after verifying, the user's role changes from admin to authenticated. 
+need to change to email verification logic, check if the user is admin or not, only none admin user change the role to authenticated
 
-2. **Commit History**: Show off your consistent hard work through your commit history like a true coding warrior. **Projects with less than 10 commits will get an automatic 0 - ouch!** 😬⚠️ A significant part of your project's evaluation will be based on your use of issues, commits, and following a professional development process like a boss - prove your coding prowess! 💻🔄🔥
+[See the issue](https://github.com/jincheng411/user_management/issues/5)
 
-3. **Deployability**: Broken projects that don't deploy to Dockerhub or pass all the automated tests on GitHub actions will face point deductions - nobody likes a buggy app! 🐞☠️ Show the world your flawless coding skills!
+### Issue 5: Admin should not receive a verification email
+As first user admin created in the database, it should not receive verification email, add condition that send verification emails only when the users are not admin
 
-## Managing the Project Workload: Stay Focused, Stay Victorious ⏱️🧠⚡
+[See the issue](https://github.com/jincheng411/user_management/issues/3)
 
-This project requires effective time management and a well-planned strategy, but fear not - you've got this! Follow these steps to ensure a successful (and sane!) project outcome:
+### Issue 6: Not able to verify new user after register
+After registered user and received the verification email, click "verifify email" link, it had error to verify the email with the link.Not able to verify user email is because the link doesn't have user_id, this is because it send the verification email before the user saved to database while creating the user.
+To fix it we have to send the email after the user been created in the database.
 
-1. **Select a Feature**: [Choose a feature](features.md) from the provided list of additional improvements that spark your interest and aligns with your goals like a laser beam. ✨⭐🎯 This is your chance to shine!
+[See the issue](https://github.com/jincheng411/event_manager/issues/12)
 
-2. **Quality Assurance (QA)**: Thoroughly test the system's major functionalities related to your chosen feature and identify at least 5 issues or bugs like a true detective. Create GitHub issues for each identified problem, providing detailed descriptions and steps to reproduce - the more detail, the merrier! 🔍🐞🕵️‍♀️ Leave no stone unturned!
+## Future implemented: User Search and Filtering
+### Test cases for user Search and filtering: 
+https://github.com/jincheng411/user_management/blob/main/tests/test_services/test_user_service.py
 
-3. **Test Coverage Improvement**: Review the existing test suite and identify gaps in test coverage like a pro. Create 10 additional tests to cover edge cases, error scenarios, and important functionalities related to your chosen feature. Focus on areas such as user registration, login, authorization, and database interactions. Simulate the setup of the system as the admin user, then creating users, and updating user accounts - leave no stone unturned, no bug left behind! ✅🧪🔍🔬 Become the master of testing!
+test list users search by nickname
+test list users search by email
+test list users filter by role
+test list users filter by status
+test list users filter by created date range
+test list users sort by created at desc
+test list users sort by created at asc
+test list users invalid date_format
+test list users no matching results
+test list users search and role filter
 
-4. **New Feature Implementation**: Implement your chosen feature, following the project's coding practices and architecture like a coding ninja. Write appropriate tests to ensure your new feature is functional and reliable like a rock. Document the new feature, including its usage, configuration, and any necessary migrations - future you will thank you profusely! 🚀✨📝👩‍💻⚡ Make your mark on this project!
+### Reflection about this IS601
+Throughout this comprehensive course on programming with Python and web development, I have experienced significant growth in both technical and professional competencies. This reflection outlines the key takeaways and the profound impact the course has had on my learning journey.
+A cornerstone of the course was learning Python programming, which provided a versatile foundation for tackling data-driven projects. From manipulating CSV files to querying SQL databases and interacting with REST-based web services, the hands-on exercises allowed me to explore the practical applications of Python. Learning the FastAPI framework was particularly transformative, as it demonstrated the power of building high-performance web applications with minimal effort. The experience reinforced the importance of understanding the intricacies of server-side programming and laid the groundwork for future endeavors in API development.
+Git, as a version control tool, became an indispensable part of the development workflow. By using Git effectively, I was able to manage changes to code, collaborate seamlessly, and ensure a robust history of my work. This practice not only enhanced my technical abilities but also underscored the value of adhering to industry standards in software development. Additionally, the emphasis on code readability and adherence to coding standards reinforced the importance of producing maintainable and scalable software solutions.
+The course’s focus on object-oriented programming (OOP) principles deepened my understanding of structuring code in a modular and reusable manner. By applying OOP concepts, I developed the skills necessary to design systems that are both efficient and adaptable. Coupled with Agile development principles, I gained experience in iterative development processes, allowing me to deliver incremental improvements and respond effectively to changing requirements.
+The introduction to SQL and Object-Relational Mapping (ORM) patterns proved invaluable for working with relational databases. I learned how to design and query databases efficiently, bridging the gap between data storage and application logic. These skills are crucial for developing robust systems that can handle complex data operations.
+One of the most impactful lessons from the course was developing confidence in technical problem-solving. By learning to isolate issues, interpret error messages, and leverage online resources like Google effectively, I honed my ability to tackle coding challenges independently. This structured approach to debugging not only improved my efficiency but also instilled a mindset of resilience and adaptability.
+This course provided a well-rounded education in python programming and web development, emphasizing both technical expertise and professional acumen. The integration of tools like VS code, pytest, and REST web services further enriched the learning experience. Most importantly, the course fostered a problem-solving mindset that will serve as a cornerstone of my future endeavors. I am confident that the knowledge and skills acquired through this course have prepared me to excel in the competitive fields of data programming and web development.
 
-5. **Maintain a Working Main Branch**: Throughout the project, ensure you always have a working main branch deploying to Docker like a well-oiled machine. This will prevent any last-minute headaches and ensure a smooth submission process - no tears allowed, only triumphs! 😊🚢⚓ Stay focused, stay victorious!
 
-Remember, it's more important to make something work reliably and be reasonably complete than to implement an overly complex feature. Focus on creating a feature that you can build upon or demonstrate in an interview setting - show off your skills like a rockstar! 💪🚀🎓
 
-Don't forget to always have a working main branch deploying to Docker at all times. If you always have a working main branch, you will never be in jeopardy of receiving a very disappointing grade :-). Keep that main branch shining bright!
 
-Let's embark on this epic coding adventure together and conquer the world of software engineering! You've got this, coding rockstars! 🚀🌟✨
